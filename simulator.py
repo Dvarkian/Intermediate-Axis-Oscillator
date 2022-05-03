@@ -1,16 +1,39 @@
 import PySimpleGUI as sg
 
-layout = [[sg.Graph((800, 800), (-400, -400), (400, 400), "grey10", key="-GRAPH-")]]
+layout = [[sg.Graph((800, 200), (0, -60), (400, 60), "grey10", key="-GRAPH-")]]
 
 window = sg.Window("Intermediate Axis Simulator",
                    layout,
+                   background_color="grey9",
                    finalize=True)
 
-t = 0
+t = -100
+
+header = True
+
+data = []
+lastxw = [0, 0]
+lastyw = [0, 0]
+lastzw = [0, 0]
+
+with open("data.csv", "r") as file:
+    data = file.readlines()[1:]
+
+for dataPoint in data:
+    time, xw, yw, zw, absw = dataPoint.split(",")
+    time, xw, yw, zw, absw = float(time)*100, float(xw), float(yw), float(zw), float(absw)
+
+    window["-GRAPH-"].DrawLine(lastxw, (time, xw), "green1", 2)
+    lastxw = (time, xw)
+    window["-GRAPH-"].DrawLine(lastyw, (time, yw), "light blue", 2)
+    lastyw = (time, yw)
+    window["-GRAPH-"].DrawLine(lastzw, (time, zw), "yellow", 2)
+    lastzw = (time, zw)
 
 while True:
     event, values = window.read(timeout=10)
 
     t += 1
 
-    window["-GRAPH-"].DrawPoint((t, t), 1, "green1")
+    window["-GRAPH-"].DrawLine((0, -800), (0, 800), "grey20", 1)
+    window["-GRAPH-"].DrawLine((-800, 0), (800, 0), "grey20", 1)
