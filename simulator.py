@@ -1,11 +1,32 @@
 import PySimpleGUI as sg
+import os
 
-layout = [[sg.Graph((800, 200), (0, -60), (400, 60), "grey10", key="-GRAPH-")]]
+filepaths = []
+
+for root, dirs, files in os.walk('data'):
+    # select file name
+    for file in files:
+        # check the extension of files
+        if file.endswith('.csv') and "meta" not in root:
+            # print whole path of files
+            filepath = os.path.join(root, file)
+            filepaths.append(filepath)
+
+colLayout = []
+
+for i in range(0, len(filepaths)):
+    colLayout.append([sg.Graph((800, 200), (0, -60), (400, 60), "grey10", key="-GRAPH" + str(i) + "-")])
+
+layout = [[sg.Col(colLayout, "grey30", key="-COL-")]]
 
 window = sg.Window("Intermediate Axis Simulator",
                    layout,
                    background_color="grey9",
                    finalize=True)
+
+window.refresh()
+
+print("Done.")
 
 t = -100
 
@@ -16,6 +37,7 @@ lastxw = [0, 0]
 lastyw = [0, 0]
 lastzw = [0, 0]
 
+"""
 with open("data.csv", "r") as file:
     data = file.readlines()[1:]
 
@@ -36,7 +58,7 @@ for dataPoint in data:
 
 #window["-GRAPH-"].DrawLine((-800, 0), (800, 0), "grey20", 1)
 
-
+"""
 while True:
     event, values = window.read(timeout=10)
 
