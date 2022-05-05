@@ -11,7 +11,7 @@ bgCol = "grey15"
 fieldCol = "grey4"
 inputLen = 15
 
-layout = [[sg.Column([[sg.Text("Moments of Inertia:", text_color=textCol, background_color=bgCol)],
+layout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol, background_color=bgCol)],
                       [sg.Text("I 1:", text_color=textCol, background_color=bgCol),
                        sg.Input("0.0001266726583", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I1-")],
                       [sg.Text("I 2:", text_color=textCol, background_color=bgCol),
@@ -20,7 +20,7 @@ layout = [[sg.Column([[sg.Text("Moments of Inertia:", text_color=textCol, backgr
                        sg.Input("0.0006119417833", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
-           sg.Column([[sg.Text("Purterbation Torque:", text_color=textCol, background_color=bgCol)],
+           sg.Column([[sg.Text("Purterbation Torques (nm):", text_color=textCol, background_color=bgCol)],
                       [sg.Text("K 1:", text_color=textCol, background_color=bgCol),
                        sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K1-")],
                       [sg.Text("K 2:", text_color=textCol, background_color=bgCol),
@@ -29,7 +29,7 @@ layout = [[sg.Column([[sg.Text("Moments of Inertia:", text_color=textCol, backgr
                        sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
-           sg.Column([[sg.Text("Initial Positions:", text_color=textCol, background_color=bgCol)],
+           sg.Column([[sg.Text("Initial Angular Velocities (rad/s):", text_color=textCol, background_color=bgCol)],
                       [sg.Text("Ω 1:", text_color=textCol, background_color=bgCol),
                        sg.Input("2", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O1-")],
                       [sg.Text("Ω 2:", text_color=textCol, background_color=bgCol),
@@ -41,7 +41,7 @@ layout = [[sg.Column([[sg.Text("Moments of Inertia:", text_color=textCol, backgr
            sg.Column([[sg.Text("Other Parameters:", text_color=textCol, background_color=bgCol)],
                       [sg.Text("Graph Length (s):", text_color=textCol, background_color=bgCol),
                        sg.Input("10", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-LEN-")],
-                      [sg.Text("Time Step (s):", text_color=textCol, background_color=bgCol),
+                      [sg.Text("Time Step (s/it):", text_color=textCol, background_color=bgCol),
                        sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
                       [sg.Text("Perturbation Duration (s):", text_color=textCol, background_color=bgCol),
                        sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KT-")]],
