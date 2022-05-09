@@ -6,47 +6,51 @@ import math
 import random
 
 textCol = "light blue"
-textInpCol = "orange"
+textInpCol = "grey90"
 bgCol = "grey15"
 fieldCol = "grey4"
 axisCol = "grey30"
+
+omega1Col = "yellow"
+omega2Col = "green1"
+omega3Col = "orange"
 
 inputLen = 15
 
 graphHeight = 10
 
 layout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol, background_color=bgCol)],
-                      [sg.Text("I₁:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.0001266726583", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I1-")],
-                      [sg.Text("I₂:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.000491276325", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I2-")],
-                      [sg.Text("I₃:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.0006119417833", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I3-")]],
+                      [sg.Text("I₁:", text_color=omega1Col, background_color=bgCol),
+                       sg.Input("0.0001266726583", size=(inputLen, 1), text_color=omega1Col, background_color=fieldCol, key="-I1-")],
+                      [sg.Text("I₂:", text_color=omega2Col, background_color=bgCol),
+                       sg.Input("0.000491276325", size=(inputLen, 1), text_color=omega2Col, background_color=fieldCol, key="-I2-")],
+                      [sg.Text("I₃:", text_color=omega3Col, background_color=bgCol),
+                       sg.Input("0.0006119417833", size=(inputLen, 1), text_color=omega3Col, background_color=fieldCol, key="-I3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
            sg.Column([[sg.Text("Torques (Nm):", text_color=textCol, background_color=bgCol)],
-                      [sg.Text("K₁:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K1-")],
-                      [sg.Text("K₂:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K2-")],
-                      [sg.Text("K₃:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K3-")]],
+                      [sg.Text("K₁:", text_color=omega1Col, background_color=bgCol),
+                       sg.Input("0", size=(inputLen, 1), text_color=omega1Col, background_color=fieldCol, key="-K1-")],
+                      [sg.Text("K₂:", text_color=omega2Col, background_color=bgCol),
+                       sg.Input("0", size=(inputLen, 1), text_color=omega2Col, background_color=fieldCol, key="-K2-")],
+                      [sg.Text("K₃:", text_color=omega3Col, background_color=bgCol),
+                       sg.Input("0", size=(inputLen, 1), text_color=omega3Col, background_color=fieldCol, key="-K3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
            sg.Column([[sg.Text("Initial Angular Velocities (rad/s):", text_color=textCol, background_color=bgCol)],
-                      [sg.Text("ω₁:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O1-")],
-                      [sg.Text("ω₂:", text_color=textCol, background_color=bgCol),
-                       sg.Input("2", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O2-")],
-                      [sg.Text("ω₃:", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O3-")]],
+                      [sg.Text("ω₁:", text_color=omega1Col, background_color=bgCol),
+                       sg.Input("0.001", size=(inputLen, 1), text_color=omega1Col, background_color=fieldCol, key="-O1-")],
+                      [sg.Text("ω₂:", text_color=omega2Col, background_color=bgCol),
+                       sg.Input("2", size=(inputLen, 1), text_color=omega2Col, background_color=fieldCol, key="-O2-")],
+                      [sg.Text("ω₃:", text_color=omega3Col, background_color=bgCol),
+                       sg.Input("0.001", size=(inputLen, 1), text_color=omega3Col, background_color=fieldCol, key="-O3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
            sg.Column([[sg.Text("Other Parameters:", text_color=textCol, background_color=bgCol)],
                       [sg.Text("Graph Length (s):", text_color=textCol, background_color=bgCol),
                        sg.Input("40", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-LEN-")],
                       [sg.Text("Time Step (s/it):", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.02", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
+                       sg.Input("0.05", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
                       [sg.Text("Perturbation Duration (s):", text_color=textCol, background_color=bgCol),
                        sg.Input("0.0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KDUR-")]],
                      background_color=bgCol)],
