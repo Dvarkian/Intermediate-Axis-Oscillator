@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 import os
 
 import time
-
+import math
 import random
 
 textCol = "light blue"
@@ -10,44 +10,48 @@ textInpCol = "orange"
 bgCol = "grey15"
 fieldCol = "grey4"
 inputLen = 15
+axisCol = "grey30"
+
+graphHeight = 10
 
 layout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol, background_color=bgCol)],
-                      [sg.Text("I 1:", text_color=textCol, background_color=bgCol),
+                      [sg.Text("I₁:", text_color=textCol, background_color=bgCol),
                        sg.Input("0.0001266726583", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I1-")],
-                      [sg.Text("I 2:", text_color=textCol, background_color=bgCol),
+                      [sg.Text("I₂:", text_color=textCol, background_color=bgCol),
                        sg.Input("0.000491276325", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I2-")],
-                      [sg.Text("I 3:", text_color=textCol, background_color=bgCol),
+                      [sg.Text("I₃:", text_color=textCol, background_color=bgCol),
                        sg.Input("0.0006119417833", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-I3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
-           sg.Column([[sg.Text("Purterbation Torques (nm):", text_color=textCol, background_color=bgCol)],
-                      [sg.Text("K 1:", text_color=textCol, background_color=bgCol),
+           sg.Column([[sg.Text("Torques (Nm):", text_color=textCol, background_color=bgCol)],
+                      [sg.Text("K₁:", text_color=textCol, background_color=bgCol),
                        sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K1-")],
-                      [sg.Text("K 2:", text_color=textCol, background_color=bgCol),
+                      [sg.Text("K₂:", text_color=textCol, background_color=bgCol),
                        sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K2-")],
-                      [sg.Text("K 3:", text_color=textCol, background_color=bgCol),
+                      [sg.Text("K₃:", text_color=textCol, background_color=bgCol),
                        sg.Input("0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-K3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
            sg.Column([[sg.Text("Initial Angular Velocities (rad/s):", text_color=textCol, background_color=bgCol)],
-                      [sg.Text("Ω 1:", text_color=textCol, background_color=bgCol),
-                       sg.Input("2", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O1-")],
-                      [sg.Text("Ω 2:", text_color=textCol, background_color=bgCol),
+                      [sg.Text("ω₁:", text_color=textCol, background_color=bgCol),
+                       sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O1-")],
+                      [sg.Text("ω₂:", text_color=textCol, background_color=bgCol),
                        sg.Input("2", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O2-")],
-                      [sg.Text("Ω 3:", text_color=textCol, background_color=bgCol),
-                       sg.Input("2", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O3-")]],
+                      [sg.Text("ω₃:", text_color=textCol, background_color=bgCol),
+                       sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-O3-")]],
                      background_color=bgCol),
            sg.VerticalSeparator(),
            sg.Column([[sg.Text("Other Parameters:", text_color=textCol, background_color=bgCol)],
                       [sg.Text("Graph Length (s):", text_color=textCol, background_color=bgCol),
-                       sg.Input("10", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-LEN-")],
+                       sg.Input("40", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-LEN-")],
                       [sg.Text("Time Step (s/it):", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
+                       sg.Input("0.02", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
                       [sg.Text("Perturbation Duration (s):", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.001", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KT-")]],
+                       sg.Input("0.0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KT-")]],
                      background_color=bgCol)],
-          [sg.Graph((1000, 500), (0, -40), (20, 40), "grey10", key="-GRAPH-")],
-          [sg.Button("Generate Results!", button_color=("grey4", "green1"), key="-GO-")]]
+          [sg.Graph((1000, 500), (0, -40), (10, 40), "grey10", key="-GRAPH-")],
+          [sg.Button("Graph Angular Velocity vs. Time.", button_color=("grey4", "green1"), key="-GO-"),
+           sg.ProgressBar(100, "h", size_px=(100, 6), key="-BAR-", bar_color=("green1", "grey4"), relief="RELIEF_RAISED")]]
 
 window = sg.Window("Intermediate Axis Simulator",
                    layout,
@@ -55,8 +59,7 @@ window = sg.Window("Intermediate Axis Simulator",
                    finalize=True)
 
                       
-
-# Euler's method
+window["-BAR-"].update(visible=False)
 
 i = 1
 
@@ -81,7 +84,26 @@ I1 = 0.0001266726583
 #Omega2_start = 2        # initial Omega2
 #Omega3_start = 2        # initial Omega2
 
-def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start, Dt, t_end):
+def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start, Dt, t_end, p_dur):
+
+    graphHeight = int(max([Omega1_start, Omega2_start, Omega3_start]) * 5)
+
+    #window["-BAR-"].update(visible=True)
+    window.refresh()
+
+    window["-GRAPH-"].change_coordinates((0, -graphHeight), (t_end, graphHeight))
+
+    window["-GRAPH-"].DrawLine((0, -graphHeight), (0, graphHeight), axisCol, 1)
+    window["-GRAPH-"].DrawLine((0, 0), (t_end, 0), axisCol, 1)
+
+    for y in range(-graphHeight, graphHeight):
+        if y % (graphHeight / 10) == 0:
+            window["-GRAPH-"].DrawLine((0, y), (Dt*t_end/2, y), axisCol)
+            window["-GRAPH-"].DrawText(str(y), (Dt*t_end, y), axisCol)
+        else:
+            window["-GRAPH-"].DrawLine((0, y), (Dt*t_end/4, y), axisCol)
+
+    
 
     t_arr = [0]
     
@@ -91,7 +113,18 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
 
     i = 0
 
-    while t_arr[i-1] < 100:
+    window["-GRAPH-"].DrawLine((0, 0), (10, 0), axisCol, 1)
+
+    while t_arr[i-1] < t_end:
+
+        if p_dur != 0:
+            if t_arr[i-1] > p_dur:
+                K1, K2, K3 = 0, 0, 0
+
+        #print(t_arr[i-1])
+
+        window["-BAR-"].update(int(t_arr[i-1]*100 / 10))
+        window.refresh()
         
         Omega1 = Omega1_arr[i-1]
         Omega2 = Omega2_arr[i-1]
@@ -103,6 +136,15 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
         dOmega2dt = (K2 - (I1 - I3)*Omega1*Omega3) / I2  # calculate the derivative of Omega1
         dOmega3dt = (K3 - (I2 - I1)*Omega2*Omega1) / I3
 
+
+        if abs(math.modf(t_arr[i-1])[0] < Dt):
+            window["-GRAPH-"].DrawLine((t_arr[i-1], -(1/40)*graphHeight), (t_arr[i-1], (1/40)*graphHeight), axisCol, 1)
+            window["-GRAPH-"].DrawText(str(int(math.modf(t_arr[i-1])[1])), (t_arr[i-1], (-1/20)*graphHeight), axisCol)
+        elif abs(math.modf(t_arr[i-1])[0] - 0.5) < Dt/2:
+            window["-GRAPH-"].DrawLine((t_arr[i-1], -(1/80)*graphHeight), (t_arr[i-1], (1/80)*graphHeight), axisCol, 1)
+        #else:
+        #    window["-GRAPH-"].DrawLine((t_arr[i-1], -0.2), (t_arr[i-1], 0.2), axisCol, 1)
+
        
         Omega1_arr.append(Omega1 + Dt*dOmega1dt)  # calc. Omega1 at next timestep,add to array
         Omega2_arr.append(Omega2 + Dt*dOmega2dt)  # calc. Omega2 at next timestep,add to array
@@ -110,14 +152,20 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
 
         t_arr.append(t + Dt)       # add new value of t to array
 
-
         #window["-GRAPH-"].DrawLine(((i-1)*Dt*timescale, Omega1_arr[i-1]), ((i)*Dt*timescale, Omega1_arr[i]), "yellow", 1)
         window["-GRAPH-"].DrawLine((t_arr[i-1], Omega1_arr[i-1]), (t_arr[i], Omega1_arr[i]), "yellow", 1)
         window["-GRAPH-"].DrawLine((t_arr[i-1], Omega2_arr[i-1]), (t_arr[i], Omega2_arr[i]), "orange", 1)
         window["-GRAPH-"].DrawLine((t_arr[i-1], Omega3_arr[i-1]), (t_arr[i], Omega3_arr[i]), "green1", 1)
+
+       
+
+
         
 
         i += 1
+
+    window["-BAR-"].update(visible=False)
+    window.refresh()
 
 
 oldParams = []
@@ -142,7 +190,7 @@ while True:
     
     if event == "-GO-":
         window["-GRAPH-"].erase()
-        graphState(K1, K2, K3, KT, I1, I2, I3, O1, O2, O3, step, length)
+        graphState(K1, K2, K3, KT, I1, I2, I3, O1, O2, O3, step, length, KT)
 
 
 
