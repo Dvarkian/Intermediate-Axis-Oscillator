@@ -9,8 +9,9 @@ textCol = "light blue"
 textInpCol = "orange"
 bgCol = "grey15"
 fieldCol = "grey4"
-inputLen = 15
 axisCol = "grey30"
+
+inputLen = 15
 
 graphHeight = 10
 
@@ -47,7 +48,7 @@ layout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol
                       [sg.Text("Time Step (s/it):", text_color=textCol, background_color=bgCol),
                        sg.Input("0.02", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
                       [sg.Text("Perturbation Duration (s):", text_color=textCol, background_color=bgCol),
-                       sg.Input("0.0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KT-")]],
+                       sg.Input("0.0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KDUR-")]],
                      background_color=bgCol)],
           [sg.Graph((1000, 500), (0, -40), (10, 40), "grey10", key="-GRAPH-")],
           [sg.Button("Graph Angular Velocity vs. Time.", button_color=("grey4", "green1"), key="-GO-"),
@@ -63,28 +64,7 @@ window["-BAR-"].update(visible=False)
 
 i = 1
 
-
-I3 = 0.0006119417833
-I2 = 0.000491276325
-I1 = 0.0001266726583
-
-#Dt = 0.01 # timestep Delta t
-
-
-
-#t_start = 0             # starttime
-#t_end = 10              # endtimen_steps = int(round((t_end-t_start)/Dt))    # number of timesteps
-
-
-#K1 = 0.0000    
-#K2 = 0.0000
-#K3 = 0.0000
-
-#Omega1_start = 2          # initial Omega1
-#Omega2_start = 2        # initial Omega2
-#Omega3_start = 2        # initial Omega2
-
-def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start, Dt, t_end, p_dur):
+def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start, dt, t_end, perturbationDuration):
 
     graphHeight = int(max([Omega1_start, Omega2_start, Omega3_start]) * 5)
 
@@ -98,10 +78,10 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
 
     for y in range(-graphHeight, graphHeight):
         if y % (graphHeight / 10) == 0:
-            window["-GRAPH-"].DrawLine((0, y), (Dt*t_end/2, y), axisCol)
-            window["-GRAPH-"].DrawText(str(y), (Dt*t_end, y), axisCol)
+            window["-GRAPH-"].DrawLine((0, y), (dt*t_end/2, y), axisCol)
+            window["-GRAPH-"].DrawText(str(y), (dt*t_end, y), axisCol)
         else:
-            window["-GRAPH-"].DrawLine((0, y), (Dt*t_end/4, y), axisCol)
+            window["-GRAPH-"].DrawLine((0, y), (dt*t_end/4, y), axisCol)
 
     
 
@@ -117,8 +97,8 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
 
     while t_arr[i-1] < t_end:
 
-        if p_dur != 0:
-            if t_arr[i-1] > p_dur:
+        if perturbationDuration != 0:
+            if t_arr[i-1] > perturbationDuration:
                 K1, K2, K3 = 0, 0, 0
 
         #print(t_arr[i-1])
@@ -137,22 +117,22 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
         dOmega3dt = (K3 - (I2 - I1)*Omega2*Omega1) / I3
 
 
-        if abs(math.modf(t_arr[i-1])[0] < Dt):
+        if abs(math.modf(t_arr[i-1])[0] < dt):
             window["-GRAPH-"].DrawLine((t_arr[i-1], -(1/40)*graphHeight), (t_arr[i-1], (1/40)*graphHeight), axisCol, 1)
             window["-GRAPH-"].DrawText(str(int(math.modf(t_arr[i-1])[1])), (t_arr[i-1], (-1/20)*graphHeight), axisCol)
-        elif abs(math.modf(t_arr[i-1])[0] - 0.5) < Dt/2:
+        elif abs(math.modf(t_arr[i-1])[0] - 0.5) < dt/2:
             window["-GRAPH-"].DrawLine((t_arr[i-1], -(1/80)*graphHeight), (t_arr[i-1], (1/80)*graphHeight), axisCol, 1)
         #else:
         #    window["-GRAPH-"].DrawLine((t_arr[i-1], -0.2), (t_arr[i-1], 0.2), axisCol, 1)
 
        
-        Omega1_arr.append(Omega1 + Dt*dOmega1dt)  # calc. Omega1 at next timestep,add to array
-        Omega2_arr.append(Omega2 + Dt*dOmega2dt)  # calc. Omega2 at next timestep,add to array
-        Omega3_arr.append(Omega3 + Dt*dOmega3dt)  # calc. Omega2 at next timestep,add to array
+        Omega1_arr.append(Omega1 + dt*dOmega1dt)  # calc. Omega1 at next timestep,add to array
+        Omega2_arr.append(Omega2 + dt*dOmega2dt)  # calc. Omega2 at next timestep,add to array
+        Omega3_arr.append(Omega3 + dt*dOmega3dt)  # calc. Omega2 at next timestep,add to array
 
-        t_arr.append(t + Dt)       # add new value of t to array
+        t_arr.append(t + dt)       # add new value of t to array
 
-        #window["-GRAPH-"].DrawLine(((i-1)*Dt*timescale, Omega1_arr[i-1]), ((i)*Dt*timescale, Omega1_arr[i]), "yellow", 1)
+        #window["-GRAPH-"].DrawLine(((i-1)*dt*timescale, Omega1_arr[i-1]), ((i)*dt*timescale, Omega1_arr[i]), "yellow", 1)
         window["-GRAPH-"].DrawLine((t_arr[i-1], Omega1_arr[i-1]), (t_arr[i], Omega1_arr[i]), "yellow", 1)
         window["-GRAPH-"].DrawLine((t_arr[i-1], Omega2_arr[i-1]), (t_arr[i], Omega2_arr[i]), "orange", 1)
         window["-GRAPH-"].DrawLine((t_arr[i-1], Omega3_arr[i-1]), (t_arr[i], Omega3_arr[i]), "green1", 1)
@@ -168,7 +148,6 @@ def graphState(K1, K2, K3, KT, I1, I2, I3, Omega1_start, Omega2_start, Omega3_st
     window.refresh()
 
 
-oldParams = []
 
 while True:
 
@@ -181,7 +160,7 @@ while True:
         K1, K2, K3, = float(values["-K1-"]),  float(values["-K2-"]),  float(values["-K3-"])
         I1, I2, I3, = float(values["-I1-"]),  float(values["-I2-"]),  float(values["-I3-"])
         O1, O2, O3, = float(values["-O1-"]),  float(values["-O2-"]),  float(values["-O3-"])
-        length, step, KT = float(values["-LEN-"]),  float(values["-RES-"]), float(values["-KT-"])
+        length, timeStep, perturbationDuration = float(values["-LEN-"]),  float(values["-RES-"]), float(values["-KDUR-"])
         
     except ValueError:
         print("Invalid cell.")
@@ -190,7 +169,7 @@ while True:
     
     if event == "-GO-":
         window["-GRAPH-"].erase()
-        graphState(K1, K2, K3, KT, I1, I2, I3, O1, O2, O3, step, length, KT)
+        graphState(K1, K2, K3, I1, I2, I3, O1, O2, O3, timeStep, length, perturbationDuration)
 
 
 
