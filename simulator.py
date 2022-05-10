@@ -5,6 +5,7 @@ import time
 import math
 import random
 
+
 textCol = "light blue"
 textInpCol = "grey90"
 bgCol = "grey15"
@@ -19,7 +20,19 @@ inputLen = 15
 
 graphHeight = 10
 
-layout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol, background_color=bgCol)],
+filepaths = []
+
+for root, dirs, files in os.walk('data'):
+    # select file name
+    for file in files:
+        # check the extension of files
+        if file.endswith('.csv') and "meta" not in root:
+            # print whole path of files
+            filepath = os.path.join(root, file)
+            filepaths.append(filepath)
+
+
+colLayout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol, background_color=bgCol)],
                       [sg.Text("I₁:", text_color=omega1Col, background_color=bgCol),
                        sg.Input("0.0001266726583", size=(inputLen, 1), text_color=omega1Col, background_color=fieldCol, key="-I1-")],
                       [sg.Text("I₂:", text_color=omega2Col, background_color=bgCol),
@@ -53,17 +66,30 @@ layout = [[sg.Column([[sg.Text("Moments of Inertia (kgm²):", text_color=textCol
                        sg.Input("0.05", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-RES-")],
                       [sg.Text("Perturbation Duration (s):", text_color=textCol, background_color=bgCol),
                        sg.Input("0.0", size=(inputLen, 1), text_color=textInpCol, background_color=fieldCol, key="-KDUR-")]],
-                     background_color=bgCol)],
-          [sg.Graph((1000, 500), (0, -40), (10, 40), "grey10", key="-GRAPH-")],
-          [sg.Button("Graph Angular Velocity vs. Time.", button_color=("grey4", "green1"), key="-GO-"),
-           sg.ProgressBar(100, "h", size_px=(100, 6), key="-BAR-", bar_color=("green1", "grey4"), relief="RELIEF_RAISED")]]
+                     background_color=bgCol)],[sg.Graph((820, 400), (0, -40), (10, 40), "grey10", key="-GRAPH-")],
+             [sg.Button("Graph Angular Velocity vs. Time.", button_color=("grey4", "green1"), key="-GO-"),
+              sg.ProgressBar(100, "h", size_px=(100, 6), key="-BAR-", bar_color=("green1", "grey4"), relief="RELIEF_RAISED")],
+             [sg.HorizontalSeparator()]]
 
-window = sg.Window("Intermediate Axis Simulator",
-                   layout,
-                   background_color=bgCol,
-                   finalize=True)
+
+for i in range(0, len(filepaths)):
+    colLayout.append([sg.Text(filepaths[i])])
+    colLayout.append([sg.Graph((820, 170), (0, -60), (150, 60), "grey10", key="-GRAPH" + str(i) + "-")])
+
+
+layout = [[sg.Col(colLayout, bgCol, (950, 800), key="-COL-", scrollable=True, element_justification="center",
+                  vertical_scroll_only=True)]]
+
 
                       
+window = sg.Window("Intermediate Axis Simulator",
+                   layout,
+                   background_color="grey9",
+                   finalize=True,
+                   size=(920, 800),
+                   margins=(2, 2))
+
+
 window["-BAR-"].update(visible=False)
 
 i = 1
@@ -82,8 +108,8 @@ def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start,
 
     for y in range(-graphHeight, graphHeight):
         if y % (graphHeight / 10) == 0:
-            window["-GRAPH-"].DrawLine((0, y), (dt*t_end/2, y), axisCol)
-            window["-GRAPH-"].DrawText(str(y), (dt*t_end, y), axisCol)
+            window["-GRAPH-"].DrawLine((0, y), (dt*t_end/4, y), axisCol)
+            window["-GRAPH-"].DrawText(str(y), (dt*t_end/2, y), axisCol)
         else:
             window["-GRAPH-"].DrawLine((0, y), (dt*t_end/4, y), axisCol)
 
@@ -153,6 +179,72 @@ def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start,
 
 
 
+
+
+
+
+window.refresh()
+
+print("Done.")
+
+t = -100
+
+header = True
+
+heightThreshold = 15
+# 10 too low
+
+for dataIndex in range(0, len(filepaths)):
+    startFound = False
+    startTime = 0
+    endFound = False
+    data = []
+    lastxw = [0, 0]
+    lastyw = [0, 0]
+    lastzw = [0, 0]
+
+    
+    with open(filepaths[dataIndex], "r") as file:
+        data = file.readlines()[1:]
+
+    for i in range(1, 1000, 10):
+        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((i, -100), (i, 100), "grey15", 1)
+        
+    for dataPoint in data:
+        time, xw, yw, zw, absw = dataPoint.split(",")
+        time, xw, yw, zw, absw = float(time)*100, float(xw), float(yw), float(zw), float(absw)
+
+        xSlope = (xw-lastxw[1]) / (time - startTime - lastxw[0])
+        ySlope = (yw-lastyw[1]) / (time - startTime - lastyw[0])
+        zSlope = (zw-lastzw[1]) / (time - startTime - lastzw[0])
+
+        maxSlope = max(abs(xSlope), abs(ySlope), abs(zSlope))
+
+        if abs(xSlope) < 0.4 and xw > heightThreshold and not startFound:
+            #window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time, -100), (time, 100), "red", 1)
+            #window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time - 10, heightThreshold),
+            #                                                  (time + 10, heightThreshold), "red", 1)
+            startFound = True
+            startTime = time
+
+        if abs(maxSlope) > 6 and not endFound:
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time - startTime, -100), (time - startTime, 100), "firebrick1", 1)
+            endFound = True
+
+        if startFound and not endFound:
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastxw, (time - startTime, xw), "green1", 2)
+            lastxw = (time - startTime, xw)
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastyw, (time - startTime, yw), "light blue", 2)
+            lastyw = (time - startTime, yw)
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastzw, (time - startTime, zw), "yellow", 2)
+            lastzw = (time - startTime, zw)
+
+
+
+#window["-GRAPH-"].DrawLine((-800, 0), (800, 0), "grey20", 1)
+
+
+
 while True:
 
     event, values = window.read(timeout=0)
@@ -176,74 +268,3 @@ while True:
         graphState(K1, K2, K3, I1, I2, I3, O1, O2, O3, timeStep, length, perturbationDuration)
 
 
-
-
-"""
-filepaths = []
-
-for root, dirs, files in os.walk('data'):
-    # select file name
-    for file in files:
-        # check the extension of files
-        if file.endswith('.csv') and "meta" not in root:
-            # print whole path of files
-            filepath = os.path.join(root, file)
-            filepaths.append(filepath)
-
-colLayout = []
-
-for i in range(0, len(filepaths)):
-    colLayout.append([sg.Text(filepaths[i])])
-    colLayout.append([sg.Graph((800, 200), (0, -60), (800, 60), "grey10", key="-GRAPH" + str(i) + "-")])
-
-layout = [[sg.Col(colLayout, "grey30", (800, 800), key="-COL-", scrollable=True, element_justification="center")]]
-
-window = sg.Window("Intermediate Axis Simulator",
-                   layout,
-                   background_color="grey9",
-                   finalize=True)
-
-window.refresh()
-
-print("Done.")
-
-t = -100
-
-header = True
-
-data = []
-lastxw = [0, 0]
-lastyw = [0, 0]
-lastzw = [0, 0]
-
-
-for dataIndex in range(0, len(filepaths)):
-    with open(filepaths[dataIndex], "r") as file:
-        data = file.readlines()[1:]
-
-    for i in range(1, 1000, 10):
-        window["-GRAOmega2H" + str(dataIndex) + "-"].DrawLine((i, -100), (i, 100), "grey15", 1)
-        
-    for dataOmega2oint in data:
-        time, xw, yw, zw, absw = dataOmega2oint.split(",")
-        time, xw, yw, zw, absw = float(time)*100, float(xw), float(yw), float(zw), float(absw)
-
-        window["-GRAOmega2H" + str(dataIndex) + "-"].DrawLine(lastxw, (time, xw), "green1", 2)
-        lastxw = (time, xw)
-        window["-GRAOmega2H" + str(dataIndex) + "-"].DrawLine(lastyw, (time, yw), "light blue", 2)
-        lastyw = (time, yw)
-        window["-GRAOmega2H" + str(dataIndex) + "-"].DrawLine(lastzw, (time, zw), "yellow", 2)
-        lastzw = (time, zw)
-
-
-#window["-GRAPH-"].DrawLine((-800, 0), (800, 0), "grey20", 1)
-
-
-while True:
-    event, values = window.read(timeout=10)
-
-    if event == sg.WIN_CLOSED:
-        break
-
-    t += 1
-"""
