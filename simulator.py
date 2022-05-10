@@ -110,46 +110,52 @@ window["-BAR-"].update(visible=False)
 i = 1
 
 def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start, dt, t_end, perturbationDuration, graph,
-               Omega1a_start, Omega2a_start, Omega3a_start):
+               Omega2a_start, Omega1a_start, Omega3a_start):
 
-    graphHeight = int(max([Omega1_start, Omega2_start, Omega3_start]) * 5)
+    graph = window["-GRAPH-"]
+
+    graphHeight = int(max([Omega1_start, Omega2_start, Omega3_start]) * 3)
 
     #window["-BAR-"].update(visible=True)
     window.refresh()
 
-    if graph == window["-GRAPH-"]:
-        graph.change_coordinates((0, -graphHeight), (t_end, graphHeight))
+    #if graph == window["-GRAPH-"]:
+    graph.change_coordinates((0, -graphHeight), (t_end, graphHeight))
 
-        graph.DrawLine((0, -graphHeight), (0, graphHeight), axisCol, 1)
-        graph.DrawLine((0, 0), (t_end, 0), axisCol, 1)
+    graph.DrawLine((0, -graphHeight), (0, graphHeight), axisCol, 1)
+    graph.DrawLine((0, 0), (t_end, 0), axisCol, 1)
 
-        for y in range(-graphHeight, graphHeight):
-            if y % (graphHeight / 10) == 0:
-                graph.DrawLine((0, y), (dt*t_end/4, y), axisCol)
-                graph.DrawText(str(y), (dt*t_end/2, y), axisCol)
-            else:
-                graph.DrawLine((0, y), (dt*t_end/4, y), axisCol)
+    for y in range(-graphHeight, graphHeight):
+        if y % (graphHeight / 10) == 0:
+            graph.DrawLine((0, y), (dt*t_end/4, y), axisCol)
+            graph.DrawText(str(y), (dt*t_end/2, y), axisCol)
+        else:
+            graph.DrawLine((0, y), (dt*t_end/4, y), axisCol)
 
 
-    graph.DrawLine((0, 3), (t_end*100, 3), "pink", 1)
+    #graph.DrawLine((0, -40), (t_end*100, -40), "pink", 1)
         
     t_arr = [0]
 
-    if graph == window["-GRAPH-"]:
-        Omega1_arr = [Omega1_start]
-        Omega2_arr = [Omega2_start]
-        Omega3_arr = [Omega3_start]
-    else:
-        Omega1_arr = [Omega1_start, Omega1_start + math.tan(Omega1a_start)*dt*100]
-        Omega2_arr = [Omega2_start, Omega2_start + math.tan(Omega2a_start)*dt*100]
-        Omega3_arr = [Omega3_start, Omega3_start + math.tan(Omega3a_start)*dt*100]
-        print("A+", Omega1_start + 100*Omega1a_start, Omega1_start)
+    #if graph == window["-GRAPH-"]:
+    Omega1_arr = [Omega1_start]
+    Omega2_arr = [Omega2_start]
+    Omega3_arr = [Omega3_start]
+    #else:
 
-    i = 0
+    #graph.DrawLine((0, Omega1_start), (100, Omega1_start-100*math.tan(Omega1a_start*10000)), "red", 1)
+    #graph.DrawLine((0, Omega1_start), (40, Omega1_start-40*math.tan(Omega1a_start*10000)), "pink", 1)
+        
+    #Omega1_arr = [Omega1_start - math.tan(Omega1a_start*10000)*dt*100, Omega1_start]
+    #Omega2_arr = [Omega2_start - math.tan(Omega2a_start*10000)*dt*100, Omega2_start]
+    #Omega3_arr = [Omega3_start - math.tan(Omega3a_start*10000)*dt*100, Omega3_start]
+    #print("A+", Omega1_start - math.tan(Omega1a_start*100)*dt*100, Omega1_start)
+
+    i = 1
 
     graph.DrawLine((0, 0), (10, 0), axisCol, 1)
 
-    while t_arr[i-1] < t_end*100:
+    while t_arr[i-1] < t_end:
 
         if perturbationDuration != 0:
             if t_arr[i-1] > perturbationDuration:
@@ -184,7 +190,7 @@ def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start,
         Omega2_arr.append(Omega2 + dt*dOmega2dt)  # calc. Omega2 at next timestep,add to array
         Omega3_arr.append(Omega3 + dt*dOmega3dt)  # calc. Omega2 at next timestep,add to array
 
-        t_arr.append(t + dt*100)       # add new value of t to array
+        t_arr.append(t + dt)       # add new value of t to array
 
         #window["-GRAPH-"].DrawLine(((i-1)*dt*timescale, Omega1_arr[i-1]), ((i)*dt*timescale, Omega1_arr[i]), "yellow", 1)
         
@@ -192,7 +198,7 @@ def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start,
         graph.DrawLine((t_arr[i-1], Omega2_arr[i-1]), (t_arr[i], Omega2_arr[i]), "orange", 1)
         graph.DrawLine((t_arr[i-1], Omega3_arr[i-1]), (t_arr[i], Omega3_arr[i]), "green1", 1)
 
-        print(Omega2_arr)
+        #print(Omega2_arr)
 
         #print(t_arr[i], t_end)#, Omega2_arr[i-1],  Omega2_start, Omega3_start, Omega1_start)
 
@@ -237,6 +243,10 @@ for dataIndex in range(0, len(filepaths)):
     yA = 0
     zA = 0
 
+    graphHeight = 50
+
+    window["-GRAPH-"].change_coordinates((0, -graphHeight), (10, graphHeight))
+
     window["-GRAPH" + str(dataIndex) + "-"].DrawLine((0, 0), (500, 0), axisCol, 1)
     
     with open(filepaths[dataIndex], "r") as file:
@@ -244,10 +254,21 @@ for dataIndex in range(0, len(filepaths)):
 
     for i in range(1, 1000, 10):
         window["-GRAPH" + str(dataIndex) + "-"].DrawLine((i, -6), (i, 6), axisCol, 1)
+
+    Omega1_arr = [0]
+    Omega2_arr = [0]
+    Omega3_arr = [0]
+    t_arr = [0]
+
+    startIndex = 0
+
+    for p in range(0, 20, 2):
+        window["-GRAPH-"].DrawLine((p, -5), (p, 5), "red", 1)
+    
         
     for dataPoint in data:
         time, xw, yw, zw, absw = dataPoint.split(",")
-        time, xw, yw, zw, absw = float(time)*100, float(xw), float(yw), float(zw), float(absw)
+        time, xw, yw, zw, absw = float(time), float(xw), float(yw), float(zw), float(absw)
 
         xSlope = (xw-lastxw[1]) / (time - startTime - lastxw[0])
         ySlope = (yw-lastyw[1]) / (time - startTime - lastyw[0])
@@ -255,16 +276,20 @@ for dataIndex in range(0, len(filepaths)):
 
         maxSlope = max(abs(xSlope), abs(ySlope), abs(zSlope))
 
-        if abs(xSlope) < 0.4 and xw > heightThreshold and not startFound:
-            #window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time, -100), (time, 100), "red", 1)
-            #window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time - 10, heightThreshold),
-            #                                                  (time + 10, heightThreshold), "red", 1)
+        if not startFound:
+            Omega1_arr.append(xw)
+            Omega2_arr.append(zw)
+            Omega3_arr.append(yw)
+            startIndex += 1
+
+        dataIndex2 = ""
+
+        if abs(xSlope) < 1 and xw > heightThreshold and not startFound:
+            window["-GRAPH" + str(dataIndex2) + "-"].DrawLine((time, -200), (time, 200), "yellow", 1)
+            window["-GRAPH" + str(dataIndex2) + "-"].DrawLine((time - 10, heightThreshold),
+                                                              (time + 10, heightThreshold), "pink", 1)
             startFound = True
             startTime = time
-
-            init1 = xw
-            init2 = yw
-            init3 = zw
 
             xA = xSlope
             yA = ySlope
@@ -272,35 +297,68 @@ for dataIndex in range(0, len(filepaths)):
 
             print("Starttime:", time)
 
-            window["-INIT1" + str(dataIndex) + "-"].Update("ω₁=" + str(init1)[:6] + " rad/s")
-            window["-INIT2" + str(dataIndex) + "-"].Update("ω₂=" + str(init2)[:6] + " rad/s")
-            window["-INIT3" + str(dataIndex) + "-"].Update("ω₁=" + str(init3)[:6] + " rad/s")
+            window["-INIT1" + str(dataIndex) + "-"].Update("ω₁=" + str(xw)[:6] + " rad/s")
+            window["-INIT2" + str(dataIndex) + "-"].Update("ω₂=" + str(yw)[:6] + " rad/s")
+            window["-INIT3" + str(dataIndex) + "-"].Update("ω₁=" + str(zw)[:6] + " rad/s")
+        else:
+            print("No start")
+        
 
-
-        if abs(maxSlope) > 6 and not endFound:
-            window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time - startTime, -100), (time - startTime, 100), "firebrick1", 1)
+        if abs(maxSlope) > 500 and startFound and not endFound:
+            window["-GRAPH" + str(dataIndex2) + "-"].DrawLine((time - startTime, -100), (time - startTime, 100), "firebrick1", 1)
             endFound = True
             endTime = time
-            print("Endtime:", time)
+            #print("Endtime:", time)
 
-        if startFound and not endFound:
-            window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastxw, (time - startTime, xw), "yellow3", 1)
+        
+
+        if startFound:# and not endFound:
+            print("Found!")
+            window["-GRAPH" + str(dataIndex2) + "-"].DrawLine(lastxw, (time - startTime, xw), "saddle brown", 1)
             lastxw = (time - startTime, xw)
-            window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastyw, (time - startTime, yw), "orange red", 1)
+            window["-GRAPH" + str(dataIndex2) + "-"].DrawLine(lastyw, (time - startTime, yw), "dark red", 1)
             lastyw = (time - startTime, yw)
-            window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastzw, (time - startTime, zw), "green", 1)
+            window["-GRAPH" + str(dataIndex2) + "-"].DrawLine(lastzw, (time - startTime, zw), "dark green", 1)
             lastzw = (time - startTime, zw)
 
             validData += 1
 
-    graphState(0, 0, 0, I1, I2, I3, init1, init2, init3, 0.01, (endTime-startTime)/100, 0, window["-GRAPH" + str(dataIndex) + "-"],
-               xSlope*100, ySlope*100, zSlope*100)
+    #graphState(0, 0, 0, I1, I2, I3, init1, init2, init3, 0.001, (endTime-startTime)/100, 0, window["-GRAPH" + str(dataIndex) + "-"],
+    #           xSlope/100, ySlope/100, zSlope/100)
 
-#(endTime - startTime) / validData
+    #break
+    """
+    i = startIndex
+    dt = 0.01
 
+    while t_arr[i-startIndex-1] < endTime - startTime:
+        window.refresh()
+        
+        Omega1 = Omega1_arr[i-1]
+        Omega2 = Omega2_arr[i-1]
+        Omega3 = Omega3_arr[i-1]
+       
+        t = t_arr[i-startIndex-1]
+       
+        dOmega1dt = (0 - (I3 - I2)*Omega2*Omega3) / I1 # calculate the derivative of Omega1
+        dOmega2dt = (0 - (I1 - I3)*Omega1*Omega3) / I2  # calculate the derivative of Omega1
+        dOmega3dt = (0 - (I2 - I1)*Omega2*Omega1) / I3
+     
+        Omega1_arr.append(Omega1 + dt*dOmega1dt)  # calc. Omega1 at next timestep,add to array
+        Omega2_arr.append(Omega2 + dt*dOmega2dt)  # calc. Omega2 at next timestep,add to array
+        Omega3_arr.append(Omega3 + dt*dOmega3dt)  # calc. Omega2 at next timestep,add to array
 
-#window["-GRAPH-"].DrawLine((-800, 0), (800, 0), "grey20", 1)
+        t_arr.append(t + 0.1)       # add new value of t to array
 
+        #window["-GRAPH-"].DrawLine(((i-1)*dt*timescale, Omega1_arr[i-1]), ((i)*dt*timescale, Omega1_arr[i]), "yellow", 1)
+        
+        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((t_arr[i-startIndex-1], Omega1_arr[i-1]), (t_arr[i-startIndex], Omega1_arr[i]), "yellow", 1)
+        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((t_arr[i-startIndex-1], Omega2_arr[i-1]), (t_arr[i-startIndex], Omega2_arr[i]), "orange", 1)
+        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((t_arr[i-startIndex-1], Omega3_arr[i-1]), (t_arr[i-startIndex], Omega3_arr[i]), "green1", 1)
+
+        i += 1
+    """
+    break
 
 
 while True:
@@ -322,7 +380,7 @@ while True:
 
     
     if event == "-GO-":
-        window["-GRAPH-"].erase()
+        #window["-GRAPH-"].erase()
         graphState(K1, K2, K3, I1, I2, I3, O1, O2, O3, timeStep, t_end, perturbationDuration, window["-GRAPH-"],
                    0, 0, 0)
 
