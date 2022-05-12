@@ -88,7 +88,15 @@ for i in range(0, len(filepaths)):
                       sg.Text("ω₂=", text_color=omega2Col, background_color=bgCol, pad=((2, 2), (0, 17)),
                               k="-INIT2" + str(i) + "-"),
                       sg.Text("ω₃=", text_color=omega3Col, background_color=bgCol, pad=((2, 2), (0, 17)),
-                              k="-INIT3" + str(i) + "-")]
+                              k="-INIT3" + str(i) + "-"),
+                      sg.Text("|", background_color=bgCol, text_color="white", pad=((2, 2), (0, 17))),
+                      sg.Text("Experimental T₂=", text_color=textCol, background_color=bgCol, pad=((2, 2), (0, 17)),
+                              k="-EXP" + str(i) + "-"),
+                      sg.Text("Theoretical T₂=", text_color="royal blue", background_color=bgCol, pad=((2, 2), (0, 17)),
+                              k="-THE" + str(i) + "-"),
+                      sg.Text("|", background_color=bgCol, text_color="white", pad=((2, 2), (0, 17))),
+                      sg.Text("KE Total=", text_color="antique white", background_color=bgCol, pad=((2, 2), (0, 17)),
+                              k="-KE" + str(i) + "-")]
                      )
 
 
@@ -183,15 +191,9 @@ def graphState(K1, K2, K3, I1, I2, I3, Omega1_start, Omega2_start, Omega3_start,
 
 window.refresh()
 
-print("Done.")
+
 
 t = -100
-
-header = True
-
-init1 = 0
-init2 = 0
-init3 = 0
 
 heightThreshold = 13
 # 10 too low
@@ -213,7 +215,7 @@ for dataIndex in range(0, len(filepaths)):
 
     graphHeight = 40
 
-    window["-GRAPH" + str(dataIndex) + "-"].change_coordinates((0, -graphHeight), (6, graphHeight))
+    window["-GRAPH" + str(dataIndex) + "-"].change_coordinates((0, -graphHeight), (5, graphHeight))
 
     window["-GRAPH" + str(dataIndex) + "-"].DrawLine((0, 0), (500, 0), axisCol, 1)
     
@@ -228,17 +230,18 @@ for dataIndex in range(0, len(filepaths)):
     startIndex = 0
     dataPointStartIndex = 0
 
-    firstFind = None
-
     for p in range(0, 20, 1):
-        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((p, -5), (p, 5), "red", 1)
+        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((p, -1), (p, 1), axisCol, 1)
+        window["-GRAPH" + str(dataIndex) + "-"].DrawText(str(p), (p, -6), axisCol)
 
 
+    xwInit = 0
     startTime1 = 0
+    intermidiateOscillationTime = -1
         
     for dataPointIndex in range(0, len(data)):
         time, xw, yw, zw, absw = data[dataPointIndex].split(",")
-        time, xw, yw, zw, absw = float(time)-1, float(xw), float(yw), float(zw), float(absw)
+        time, xw, yw, zw, absw = float(time)-1.05, float(xw), float(yw), float(zw), float(absw)
 
         xSlope = (xw-lastxw[1]) / (time - startTime1 - lastxw[0])
         ySlope = (yw-lastyw[1]) / (time - startTime1 - lastyw[0])
@@ -255,23 +258,34 @@ for dataIndex in range(0, len(filepaths)):
             startFound = True
             startTime = time
 
+            xwInit = xw
+
             dataPointStartIndex = dataPointIndex
 
             xA = xSlope
             yA = ySlope
             zA = zSlope
 
-            print("Starttime:", time)
-
             window["-INIT1" + str(dataIndex) + "-"].Update("ω₁=" + str(xw)[:6] + " rad/s")
             window["-INIT2" + str(dataIndex) + "-"].Update("ω₂=" + str(yw)[:6] + " rad/s")
-            window["-INIT3" + str(dataIndex) + "-"].Update("ω₁=" + str(zw)[:6] + " rad/s")
+            window["-INIT3" + str(dataIndex) + "-"].Update("ω₃=" + str(zw)[:6] + " rad/s")
 
         if abs(maxSlope) > 650 and startFound and not endFound:
             window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time - startTime1, -100), (time - startTime1, 100), "firebrick1", 1)
             endFound = True
             endTime = time
             #print("Endtime:", time)
+
+        if startFound:
+            if abs(xw - xwInit) < 0.12 and time - startTime > 0.2:
+                if not endFound:
+                    intermidiateOscillationTime = time - startTime
+                    window["-EXP" + str(dataIndex) + "-"].Update("Exp. T₂=" + str(intermidiateOscillationTime)[:6] + " s")
+                    line = window["-GRAPH" + str(dataIndex) + "-"].DrawLine((time, -100), (time, 100), "light blue", 1)
+                    window["-GRAPH" + str(dataIndex) + "-"].send_figure_to_back(line)
+
+                else:
+                    window["-EXP" + str(dataIndex) + "-"].Update("Exp. T₂>" + str(endTime-startTime)[:6] + " s", text_color="red")
 
         if not endFound:
             window["-GRAPH" + str(dataIndex) + "-"].DrawLine(lastxw, (time - startTime1, xw), "saddle brown", 1)
@@ -283,13 +297,13 @@ for dataIndex in range(0, len(filepaths)):
 
             validData += 1
 
+    if intermidiateOscillationTime == -1:
+        window["-EXP" + str(dataIndex) + "-"].Update("Exp. T₂>" + str(endTime-startTime)[:6] + " s", text_color="red")
 
     sampleLen = 1
 
     time = startTime
 
-    print("Found!")
-    
     Omega1_arr = []
     Omega2_arr = []
     Omega3_arr = []
@@ -301,16 +315,22 @@ for dataIndex in range(0, len(filepaths)):
 
     timeArray = [time]
 
-    i = 0
-    dt = 0.004
+    periodFound = False
 
-    while timeArray[i-1] < endTime:
+    i = 0
+    dt = 0.006
+
+    keWritten = False
+
+    initSlope = -1024
+
+    while timeArray[i-1] < endTime or not periodFound:
         window.refresh()
 
         Omega1 = Omega1_arr[i-1]
         Omega2 = Omega2_arr[i-1]
         Omega3 = Omega3_arr[i-1]
-
+        
         t = timeArray[i-1]
 
         dOmega1dt = (0 - (I3 - I2)*Omega2*Omega3) / I1*-1 # calculate the derivative of Omega1
@@ -321,17 +341,47 @@ for dataIndex in range(0, len(filepaths)):
         Omega2_arr.append(Omega2 + dt*dOmega2dt)  # calc. Omega2 at next timestep,add to array
         Omega3_arr.append(Omega3 + dt*dOmega3dt)  # calc. Omega2 at next timestep,add to array
 
+        if initSlope == -1024:
+            initSlope = dOmega2dt
+
+        if abs(initSlope - dOmega2dt) < 2 and timeArray[-1] - startTime > 0.4 and abs(xwInit - Omega2) < 9:
+            periodFound = True
+            intermidiateOscillationTime = timeArray[-1] - startTime
+            window["-THE" + str(dataIndex) + "-"].Update("The. T₂=" + str(intermidiateOscillationTime)[:6] + " s")
+            line = window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[-1], -100), (timeArray[-1], 100), "blue", 1)
+            window["-GRAPH" + str(dataIndex) + "-"].send_figure_to_back(line)
+
+        elif abs(initSlope - dOmega2dt) == float('inf'):
+            window["-THE" + str(dataIndex) + "-"].Update("The. T₂=[error]", text_color="orange")
+            periodFound = True
+
         timeArray.append(t + dt)       # add new value of t to array
 
         #window["-GRAPH-"].DrawLine(((i-1)*dt*timescale, Omega1_arr[i-1]), ((i)*dt*timescale, Omega1_arr[i]), "yellow", 1)
-        
-        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], Omega1_arr[i-1]), (timeArray[i], Omega1_arr[i]), "red", 1)
-        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], Omega2_arr[i-1]), (timeArray[i], Omega2_arr[i]), "orange", 1)
-        window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], Omega3_arr[i-1]), (timeArray[i], Omega3_arr[i]), "green1", 1)
+
+        if timeArray[-1] < endTime:
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], Omega1_arr[i-1]), (timeArray[i], Omega1_arr[i]), "red", 1)
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], Omega2_arr[i-1]), (timeArray[i], Omega2_arr[i]), "orange", 1)
+            window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], Omega3_arr[i-1]), (timeArray[i], Omega3_arr[i]), "green1", 1)
+
+            if not keWritten:
+                keWritten = True
+                
+                ke1 = 0.5 * I1 * (Omega1 ** 2)
+                ke2 = 0.5 * I2 * (Omega2 ** 2)
+                ke3 = 0.5 * I3 * (Omega3 ** 2)
+                keTotal = ke1 + ke2 + ke3
+
+                window["-KE" + str(dataIndex) + "-"].Update("KE Total=" + str(keTotal)[:6] + " J")
+
+                #window["-GRAPH" + str(dataIndex) + "-"].DrawLine((timeArray[i-1], keTotalArr[i-1]),
+                #                                                 (timeArray[i], keTotalArr[i]), "grey96", 1)
 
         i += 1
-        
 
+    print("#"*10)
+
+print("Done.")
 
 while True:
 
