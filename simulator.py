@@ -22,6 +22,7 @@ graphHeight = 10
 
 filepaths = []
 
+# Default moments of inertia, used for analysis.
 I1 = 0.0001266726583
 I2 = 0.000491276325
 I3 = 0.0006119417833
