@@ -3,11 +3,9 @@ Intermidate Axis Oscillator (v1.3.1)
 
 This software is designed to simulate and graph the motion of a rotating object in free fall, as governed by [Euler's rotation equations](https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/Numerical%20solution%20of%20Euler%E2%80%99s%20rotation%20equations.pdf).
 
-![Simulator Screenshot](https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/screenshots/Simulation.png)
-
 Additionally, this simulator can be used to compare experimental angular velocity data collected using [Phyphox](https://phyphox.org/) to the numerically determined theorectical predictions of Euler's rotation equations. The simulator will then make calculations to determine the peried of off axis oscillation caused by the [tennis racquet effect](https://en.wikipedia.org/wiki/Tennis_racket_theorem).
 
-![Data Analysis Screenshot](https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/screenshots/Dataset%201.png)
+![Simulator Screenshot](https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/screenshots/Combined.png)
 
 
 Installing and using this simulator.
