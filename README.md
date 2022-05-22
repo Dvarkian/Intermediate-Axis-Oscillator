@@ -7,7 +7,7 @@ This software is designed to simulate and graph the motion of a rotating object 
 
 Additionally, this simulator can be used to compare experimental angular velocity data collected using [Phyphox](https://phyphox.org/) to the numerically determined theorectical predictions of Euler's rotation equations. The simulator will then make calculations to determine the peried of off axis oscillation caused by the [tennis racquet effect](https://en.wikipedia.org/wiki/Tennis_racket_theorem).
 
-![Data Analysis Screenshot]([https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/screenshots/Simulation.png](https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/screenshots/Dataset%201.png))
+![Data Analysis Screenshot](https://github.com/Mblizzard/Intermediate-Axis-Oscillator/blob/main/screenshots/Dataset%201.png)
 
 
 Installing and using this simulator.
